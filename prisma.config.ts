@@ -3,12 +3,17 @@
 import "dotenv/config";
 import { defineConfig } from "prisma/config";
 
+const directUrl = process.env["DIRECT_URL"];
+const databaseUrl = process.env["DATABASE_URL"];
+
 export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: {
     path: "prisma/migrations",
   },
   datasource: {
-    url: process.env["DATABASE_URL"],
+    // Prefer the direct Postgres URL for Prisma migrations.
+    // The pooled DATABASE_URL can hang during migrate dev.
+    url: directUrl ?? databaseUrl,
   },
 });
