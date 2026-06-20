@@ -20,10 +20,11 @@ interface ProductsPageProps {
 export default async function ProductsPage({
   searchParams,
 }: ProductsPageProps) {
-  const query = searchParams.q || "";
-  const typeFilter = searchParams.type as ProductType | undefined;
-  const sort = searchParams.sort || "newest";
-  const page = parseInt(searchParams.page || "1", 10) || 1;
+  const params = await searchParams;
+  const query = (params.q as string) || "";
+  const typeFilter = params.type as ProductType | undefined;
+  const sort = (params.sort as string) || "newest";
+  const page = parseInt((params.page as string) || "1", 10) || 1;
 
   let productIds: string[] | undefined;
 
@@ -31,8 +32,8 @@ export default async function ProductsPage({
     const searchResults = await prisma.$queryRaw<{ id: string }[]>`
         SELECT id
         FROM products 
-        WHERE search_vector @@ websearch_to_tsvector('english', ${query})
-        ORDER BY ts_rank(search_vector @@ websearch_to_tsvector('english', ${query})) DESC
+        WHERE search_vector @@ websearch_to_tsquery('english', ${query})
+        ORDER BY ts_rank(search_vector, websearch_to_tsquery('english', ${query})) DESC
         LIMIT 100
     `;
 
@@ -86,10 +87,11 @@ export default async function ProductsPage({
     skip: (page - 1) * ITEMS_PER_PAGE,
     take: ITEMS_PER_PAGE,
     include: {
-      images: { orderBy: { sort_order: "desc" }, take: 1 },
+      images: { orderBy: { sort_order: "asc" }, take: 1 },
       inventory: true,
     },
   });
+  console.log(products);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -110,7 +112,12 @@ export default async function ProductsPage({
             ))}
           </div>
           <Pagination
-            searchParams={searchParams}
+            searchParams={{
+              q: query,
+              type: typeFilter,
+              sort,
+              page: page > 1 ? String(page) : undefined,
+            }}
             currentPage={page}
             totalPages={totalPages}
           />
