@@ -1,7 +1,9 @@
-import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { Prisma, ProductType } from "@prisma/client";
 import NoResults from "@/components/no-results";
+import ProductCard from "@/components/product-card";
+import Pagination from "@/components/pagination";
+import SearchFilterBar from "@/components/search-filter-bar";
 
 const ITEMS_PER_PAGE = 12;
 
@@ -107,7 +109,11 @@ export default async function ProductsPage({
               <ProductCard key={product.id} product={product} />
             ))}
           </div>
-          <Pagination currentPage={page} totalPages={totalPages} />
+          <Pagination
+            searchParams={searchParams}
+            currentPage={page}
+            totalPages={totalPages}
+          />
         </>
       )}
     </div>
